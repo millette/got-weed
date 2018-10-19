@@ -74,7 +74,7 @@ const show = (lang, booya) => {
     Url: `https://www.sqdc.ca${Url}`,
     DisplayPrice,
     CategoryId,
-    AromaDetailed: AromaDetailed.join(', ')
+    AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
   }))
   console.log(JSON.stringify(it, null, '  '))
   console.log(it.length, stockString[lang])
