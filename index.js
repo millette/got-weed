@@ -19,7 +19,12 @@ const searchString = {
   en: 'Search'
 }
 
-const getPage = async (lang = 'fr', p = 1) => {
+const stockString = {
+  fr: 'items en stock',
+  en: 'items in stock'
+}
+
+const getPage = async (lang, p = 1) => {
   const { headers, body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(re)
   if (!m1 || !m1[1]) {
@@ -49,7 +54,7 @@ const getAllPages = async (lang) => {
   return z
 }
 
-const show = (booya) => {
+const show = (lang, booya) => {
   const it = booya.map(({
     ProductId,
     Sku,
@@ -72,6 +77,7 @@ const show = (booya) => {
     AromaDetailed: AromaDetailed.join(', ')
   }))
   console.log(JSON.stringify(it, null, '  '))
+  console.log(it.length, stockString[lang])
 }
 
 const available = (booya) => booya.reduce((a, { stocks, json }) => {
@@ -79,7 +85,17 @@ const available = (booya) => booya.reduce((a, { stocks, json }) => {
   return [...a, ...them]
 }, [])
 
-getAllPages(process.argv[2] || 'fr')
-  .then((j) => {
-    show(available(j))
-  })
+const doit = async (lang) => {
+  if (!lang) {
+    throw new Error('Argument required: "en" or "fr"')
+  }
+  lang = lang.toLowerCase()
+  if ((lang !== 'fr') && (lang !== 'en')) {
+    throw new Error('Argument required: "en" or "fr"')
+  }
+  const j = await getAllPages(lang)
+  show(lang, available(j))
+  return j
+}
+
+module.exports = doit
