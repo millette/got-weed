@@ -1,1 +1,6 @@
 node_modules
+got-weed-linux
+got-weed-macos
+got-weed-win.exe
+.env
+.nyc_output
