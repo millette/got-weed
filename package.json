@@ -1,18 +1,35 @@
 {
   "name": "got-weed",
+  "description": "Find out what products are currently in stock at SQDC.",
   "version": "0.0.2",
   "main": "index.js",
   "bin": "cli.js",
+  "engines": {
+    "node": ">=8.12.0"
+  },
   "license": "AGPL-3.0",
+  "repository": "millette/rc-cli",
+  "author": {
+    "name": "Robin Millette",
+    "email": "robin@millette.info",
+    "url": "http://robin.millette.info"
+  },
   "dependencies": {
     "got": "^9.2.2"
   },
   "devDependencies": {
     "ava": "^0.25.0",
+    "coveralls": "^3.0.2",
+    "dependency-check": "^3.2.1",
     "nyc": "^13.1.0",
+    "pkg": "^4.3.4",
     "standard": "^12.0.1"
   },
   "scripts": {
-    "lint": "standard"
+    "pkg": "standard && pkg .",
+    "lint": "standard",
+    "test": "standard && nyc ava",
+    "deps": "standard && dependency-check . && dependency-check . --unused --no-dev",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   }
 }
