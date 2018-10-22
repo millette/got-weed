@@ -77,7 +77,7 @@ const show = (lang, booya) => {
     AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
   }))
   console.log(JSON.stringify(it, null, '  '))
-  console.log(it.length, stockString[lang])
+  console.log(`${it.length} ${stockString[lang]}`)
 }
 
 const available = (booya) => booya.reduce((a, { stocks, json }) => {
@@ -85,11 +85,8 @@ const available = (booya) => booya.reduce((a, { stocks, json }) => {
   return [...a, ...them]
 }, [])
 
-const doit = async (lang) => {
-  if (!lang) {
-    throw new Error('Argument required: "en" or "fr"')
-  }
-  lang = lang.toLowerCase()
+const doit = async (cli) => {
+  const lang = cli && cli.input && cli.input[0].toLowerCase()
   if ((lang !== 'fr') && (lang !== 'en')) {
     throw new Error('Argument required: "en" or "fr"')
   }

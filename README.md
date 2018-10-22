@@ -13,6 +13,17 @@ $ npm install --global got-weed
 If you prefer, you can download a binary from [release pages](https://github.com/millette/got-weed/releases) which bundles node with this project for GNU/Linux, Windows and MacOS.
 
 ## Usage
+
+```
+$ got-weed <input> <options>
+
+Input can be either "en" or "fr".
+
+Options
+  --version   Output software version
+  --help      This help text
+```
+
 ```sh
 $ got-weed en # Results in English
 $ got-weed fr # Results in French
