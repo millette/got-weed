@@ -21,11 +21,6 @@ const searchString = {
   en: 'Search'
 }
 
-const stockString = {
-  fr: 'items en stock',
-  en: 'items in stock'
-}
-
 const getPage = async (lang, p = 1) => {
   const { headers, body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(contextRe)
@@ -94,7 +89,7 @@ const products = async (cli) => {
     CategoryId,
     AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
   }))
-  console.error(`${products.length} ${stockString[cli.flags.language]}`)
+  console.error(`${products.length} items found.`)
   return products
 }
 
