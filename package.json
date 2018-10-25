@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "got": "^9.2.2",
+    "jsdom": "^12.2.0",
     "meow": "^5.0.0"
   },
   "devDependencies": {

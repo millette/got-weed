@@ -12,7 +12,11 @@ const cli = meow(`
     Usage
       $ ${name} <input> <options>
 
-    Input can be either "en" or "fr".
+    Usage Examples
+      $ got-weed fr
+      $ got-weed en
+      $ got-weed stores fr
+      $ got-weed stores en
 
     Options
       --version   Output software version

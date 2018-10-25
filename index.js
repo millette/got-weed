@@ -2,6 +2,8 @@
 
 // npm
 const got = require('got')
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
 const re = / data-context="(\{.+\})"/
 
@@ -85,13 +87,43 @@ const available = (booya) => booya.reduce((a, { stocks, json }) => {
   return [...a, ...them]
 }, [])
 
+const getStores = async (lang) => {
+  const { headers, body } = lang === 'en' ? await got(`https://www.sqdc.ca/en-CA/Stores/Directory`)
+                                          : await got(`https://www.sqdc.ca/fr-CA/Magasins/Annuaire`)
+  const dom = new JSDOM(body);
+  const stores = Array.from(dom.window.document.querySelectorAll(".p-10")).map((s, i)=>{
+    const StoreName = s.querySelector('h6').textContent
+    const RawAddress = s.querySelector('address').textContent;
+    const Tel = RawAddress.replace(/^.*\D\d\D\s\d\D\d/, '');
+    const Address = RawAddress.replace(Tel, '');
+    return {
+      StoreName: StoreName,
+      Address: Address,
+      Tel: Tel,
+    }
+  })
+  return await stores
+}
+
 const doit = async (cli) => {
-  const lang = cli && cli.input && cli.input[0].toLowerCase()
-  if ((lang !== 'fr') && (lang !== 'en')) {
+  const input = cli && cli.input && cli.input[0].toLowerCase()
+  let j
+  if (
+    (input !== 'fr') &&
+    (input !== 'en') &&
+    (input !== 'stores')
+  ) {
     throw new Error('Argument required: "en" or "fr"')
   }
-  const j = await getAllPages(lang)
-  show(lang, available(j))
+  if (input === 'fr' || input === 'en') {
+    const lang = input;
+    j = await getAllPages(lang)
+    show(lang, available(j))
+  } else if (input === 'stores') {
+    const lang = cli.input[1] || 'fr'
+    j = await getStores(lang)
+    console.log(j)
+  }
   return j
 }
 

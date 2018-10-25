@@ -17,7 +17,11 @@ If you prefer, you can download a binary from [release pages](https://github.com
 ```
 $ got-weed <input> <options>
 
-Input can be either "en" or "fr".
+Usage Examples
+  $ got-weed fr
+  $ got-weed en
+  $ got-weed stores fr
+  $ got-weed stores en
 
 Options
   --version   Output software version
