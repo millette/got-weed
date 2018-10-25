@@ -4,7 +4,8 @@
 const got = require('got')
 const { JSDOM } = require('jsdom')
 
-const re = / data-context="(\{.+\})"/
+const contextRe = / data-context="(\{.+\})"/
+const telRe = /^.*\D\d\D\s\d\D\d/
 
 const stock = (skus) => got('https://www.sqdc.ca/api/inventory/findInventoryItems', {
   json: true,
@@ -27,7 +28,7 @@ const stockString = {
 
 const getPage = async (lang, p = 1) => {
   const { headers, body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
-  const m1 = body.match(re)
+  const m1 = body.match(contextRe)
   if (!m1 || !m1[1]) {
     throw new Error('Nothing here')
   }
@@ -55,8 +56,8 @@ const getAllPages = async (lang) => {
   return z
 }
 
-const show = (lang, booya) => {
-  const it = booya.map(({
+const show = (lang, products) => {
+  const it = products.map(({
     ProductId,
     Sku,
     FullDisplayName,
@@ -81,25 +82,25 @@ const show = (lang, booya) => {
   console.log(`${it.length} ${stockString[lang]}`)
 }
 
-const available = (booya) => booya.reduce((a, { stocks, json }) => {
+const available = (pages) => pages.reduce((a, { stocks, json }) => {
   const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
   return [...a, ...them]
 }, [])
 
+const parseStore = (s) => {
+  const rawAddress = s.querySelector('address').textContent
+  const tel = rawAddress.replace(telRe, '')
+  return {
+    storeName: s.querySelector('h6').textContent,
+    address: rawAddress.replace(tel, ''),
+    tel
+  }
+}
+
 const getStores = async () => {
-  const { body } = await got(`https://www.sqdc.ca/en-CA/Stores/Directory`)
-  const dom = new JSDOM(body)
-  return Array.from(dom.window.document.querySelectorAll('.p-10')).map((s) => {
-    const storeName = s.querySelector('h6').textContent
-    const rawAddress = s.querySelector('address').textContent
-    const tel = rawAddress.replace(/^.*\D\d\D\s\d\D\d/, '')
-    const address = rawAddress.replace(tel, '')
-    return {
-      storeName,
-      address,
-      tel
-    }
-  })
+  const { body } = await got('https://www.sqdc.ca/en-CA/Stores/Directory')
+  return Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
+    .map(parseStore)
 }
 
 const doit = async (cli) => {
