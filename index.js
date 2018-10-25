@@ -21,12 +21,18 @@ const searchString = {
   en: 'Search'
 }
 
-const getPage = async (lang, p = 1) => {
-  const { headers, body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
+// const getPage = async (lang, p = 1) => {
+const getPage = async (cli, p = 1) => {
+  const lang = cli.flags.language
+
+  // const { headers, body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
+  const { body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(contextRe)
   if (!m1 || !m1[1]) {
     throw new Error('Nothing here')
   }
+  return JSON.parse(m1[1].replace(/&quot;/g, '"'))
+  /*
   const json = JSON.parse(m1[1].replace(/&quot;/g, '"'))
   const stocks = await stock(json.ProductSearchResults.SearchResults.map(({ Sku }) => Sku))
   return {
@@ -36,25 +42,33 @@ const getPage = async (lang, p = 1) => {
     nPages: json.ProductSearchResults.Pagination.TotalNumberOfPages,
     json
   }
+  */
 }
 
-const getAllPages = async (lang) => {
-  const o = await getPage(lang)
-  const { nPages } = o
+// const getAllPages = async (lang) => {
+const getAllPages = async (cli) => {
+  // const lang = cli.flags.language
+  // const o = await getPage(lang)
+  const o = await getPage(cli)
+  // const { nPages } = o
+  const nPages = o.ProductSearchResults.Pagination.TotalNumberOfPages
   let r
   const gp = []
   for (r = 1; r < nPages; ++r) {
-    gp.push(getPage(lang, r + 1))
+    // gp.push(getPage(lang, r + 1))
+    gp.push(getPage(cli, r + 1))
   }
   const z = await Promise.all(gp)
   z.push(o)
-  return z
+  return z.reduce((a, json) => [...a, ...json.ProductSearchResults.SearchResults], [])
 }
 
+/*
 const available = (pages) => pages.reduce((a, { stocks, json }) => {
   const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
   return [...a, ...them]
 }, [])
+*/
 
 const parseStore = (s) => {
   const rawAddress = s.querySelector('address').textContent
@@ -67,8 +81,17 @@ const parseStore = (s) => {
 }
 
 const products = async (cli) => {
-  const pages = await getAllPages(cli.flags.language)
-  const products = available(pages).map(({
+  // const json = await getAllPages(cli.flags.language)
+  // const json = await getAllPages(cli)
+  const products = await getAllPages(cli)
+  /*
+  console.log('pages:', pages.length)
+  console.log('page #0:', pages[0])
+  return
+  */
+  // const products = available(pages).map(({
+  /*
+  const products = json.map(({
     ProductId,
     Sku,
     FullDisplayName,
@@ -89,6 +112,7 @@ const products = async (cli) => {
     CategoryId,
     AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
   }))
+  */
   console.error(`${products.length} items found.`)
   return products
 }
