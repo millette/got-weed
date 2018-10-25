@@ -20,8 +20,7 @@ $ got-weed <input> <options>
 Usage Examples
   $ got-weed fr
   $ got-weed en
-  $ got-weed stores fr
-  $ got-weed stores en
+  $ got-weed stores
 
 Options
   --version   Output software version

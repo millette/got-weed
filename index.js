@@ -2,8 +2,7 @@
 
 // npm
 const got = require('got')
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const { JSDOM } = require('jsdom')
 
 const re = / data-context="(\{.+\})"/
 
@@ -87,42 +86,38 @@ const available = (booya) => booya.reduce((a, { stocks, json }) => {
   return [...a, ...them]
 }, [])
 
-const getStores = async (lang) => {
-  const { headers, body } = lang === 'en' ? await got(`https://www.sqdc.ca/en-CA/Stores/Directory`)
-                                          : await got(`https://www.sqdc.ca/fr-CA/Magasins/Annuaire`)
-  const dom = new JSDOM(body);
-  const stores = Array.from(dom.window.document.querySelectorAll(".p-10")).map((s, i)=>{
-    const StoreName = s.querySelector('h6').textContent
-    const RawAddress = s.querySelector('address').textContent;
-    const Tel = RawAddress.replace(/^.*\D\d\D\s\d\D\d/, '');
-    const Address = RawAddress.replace(Tel, '');
+const getStores = async () => {
+  const { body } = await got(`https://www.sqdc.ca/en-CA/Stores/Directory`)
+  const dom = new JSDOM(body)
+  return Array.from(dom.window.document.querySelectorAll('.p-10')).map((s) => {
+    const storeName = s.querySelector('h6').textContent
+    const rawAddress = s.querySelector('address').textContent
+    const tel = rawAddress.replace(/^.*\D\d\D\s\d\D\d/, '')
+    const address = rawAddress.replace(tel, '')
     return {
-      StoreName: StoreName,
-      Address: Address,
-      Tel: Tel,
+      storeName,
+      address,
+      tel
     }
   })
-  return await stores
 }
 
 const doit = async (cli) => {
-  const input = cli && cli.input && cli.input[0].toLowerCase()
+  const input = cli && cli.input && cli.input[0] && cli.input[0].toLowerCase()
   let j
   if (
     (input !== 'fr') &&
     (input !== 'en') &&
     (input !== 'stores')
   ) {
-    throw new Error('Argument required: "en" or "fr"')
+    throw new Error('Argument required: "stores", "en" or "fr"')
   }
   if (input === 'fr' || input === 'en') {
-    const lang = input;
-    j = await getAllPages(lang)
-    show(lang, available(j))
+    j = await getAllPages(input)
+    show(input, available(j))
   } else if (input === 'stores') {
-    const lang = cli.input[1] || 'fr'
-    j = await getStores(lang)
-    console.log(j)
+    j = await getStores()
+    console.log(JSON.stringify(j, null, '  '))
   }
   return j
 }

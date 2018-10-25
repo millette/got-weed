@@ -5,6 +5,7 @@
 // self
 const gw = require('.')
 const { name } = require('./package.json')
+
 // npm
 const meow = require('meow')
 
@@ -15,8 +16,7 @@ const cli = meow(`
     Usage Examples
       $ got-weed fr
       $ got-weed en
-      $ got-weed stores fr
-      $ got-weed stores en
+      $ got-weed stores
 
     Options
       --version   Output software version
