@@ -13,23 +13,30 @@ $ npm install --global got-weed
 If you prefer, you can download a binary from [release pages](https://github.com/millette/got-weed/releases) which bundles node with this project for GNU/Linux, Windows and MacOS.
 
 ## Usage
-
 ```
-$ got-weed <input> <options>
+$ got-weed <command> [options]
 
 Usage Examples
-  $ got-weed fr
-  $ got-weed en
+  $ got-weed products --language=fr
+  $ got-weed products --in-stock=yes --language=en
+  $ got-weed products --in-stock --language=en
+  $ got-weed products --in-stock=no --language=en
   $ got-weed stores
+  $ got-weed locations
+  $ got-weed products --location=qc # also accepts qu(e|é)bec and sqdc
+
+Commands
+  products        List products
+  stores          List local stores
+  locations       List supported countries and provinces/states
 
 Options
-  --version   Output software version
-  --help      This help text
-```
-
-```sh
-$ got-weed en # Results in English
-$ got-weed fr # Results in French
+  --in-stock  -s  In stock only; in-stock=false for the reverse
+  --language  -l  Language (fr or en), defaults to $LANG or $LANGUAGE
+  --force     -f  Bypass cached files if any and force download
+  --details   -d  More detailled output
+  --version       Output software version
+  --help          This help text
 ```
 
 ## License

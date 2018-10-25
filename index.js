@@ -104,6 +104,10 @@ const getStores = async () => {
 }
 
 const doit = async (cli) => {
+  if (cli.input.length !== 1) {
+    cli.showHelp()
+  }
+
   const input = cli && cli.input && cli.input[0] && cli.input[0].toLowerCase()
   let j
   if (
