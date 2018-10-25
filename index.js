@@ -56,8 +56,24 @@ const getAllPages = async (lang) => {
   return z
 }
 
-const show = (lang, products) => {
-  const it = products.map(({
+const available = (pages) => pages.reduce((a, { stocks, json }) => {
+  const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
+  return [...a, ...them]
+}, [])
+
+const parseStore = (s) => {
+  const rawAddress = s.querySelector('address').textContent
+  const tel = rawAddress.replace(telRe, '')
+  return {
+    storeName: s.querySelector('h6').textContent,
+    address: rawAddress.replace(tel, ''),
+    tel
+  }
+}
+
+const products = async (cli) => {
+  const pages = await getAllPages(cli.flags.language)
+  const products = available(pages).map(({
     ProductId,
     Sku,
     FullDisplayName,
@@ -78,53 +94,62 @@ const show = (lang, products) => {
     CategoryId,
     AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
   }))
-  console.log(JSON.stringify(it, null, '  '))
-  console.log(`${it.length} ${stockString[lang]}`)
+  console.error(`${products.length} ${stockString[cli.flags.language]}`)
+  return products
 }
 
-const available = (pages) => pages.reduce((a, { stocks, json }) => {
-  const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
-  return [...a, ...them]
-}, [])
-
-const parseStore = (s) => {
-  const rawAddress = s.querySelector('address').textContent
-  const tel = rawAddress.replace(telRe, '')
-  return {
-    storeName: s.querySelector('h6').textContent,
-    address: rawAddress.replace(tel, ''),
-    tel
-  }
-}
-
-const getStores = async () => {
+const stores = async () => {
   const { body } = await got('https://www.sqdc.ca/en-CA/Stores/Directory')
-  return Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
+  const storesFound = Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
     .map(parseStore)
+
+  console.error(`${storesFound.length} stores found.`)
+  return storesFound
+}
+
+const supportedLocations = [
+  {
+    id: 'sqdc',
+    aliases: ['qc', 'québec', 'quebec'],
+    url: 'https://www.sqdc.ca/',
+    province: 'Québec',
+    country: 'Canada'
+  }
+]
+
+const isSupportedLocation = (l) => {
+  l = l.toLowerCase()
+  return !supportedLocations.find(({ id, aliases }) => [id, ...aliases].map((s) => s.toLowerCase()).indexOf(l) === -1)
+}
+
+const locations = async () => supportedLocations
+
+const implemented = {
+  products,
+  stores,
+  locations
 }
 
 const doit = async (cli) => {
-  if (cli.input.length !== 1) {
-    cli.showHelp()
+  if (!cli || !cli.input || (cli.input.length !== 1)) {
+    cli.showHelp() // also exits
   }
 
-  const input = cli && cli.input && cli.input[0] && cli.input[0].toLowerCase()
-  let j
-  if (
-    (input !== 'fr') &&
-    (input !== 'en') &&
-    (input !== 'stores')
-  ) {
-    throw new Error('Argument required: "stores", "en" or "fr"')
+  cli.input[0] = cli.input[0].toLowerCase()
+  const command = cli.input[0]
+  if (!implemented[command]) {
+    const cmds = Object.keys(implemented).map(JSON.stringify)
+    const last = cmds.pop()
+    console.error(`Unknown: "${command}". Command must be one of ${cmds.join(', ')} or ${last}.`)
+    cli.showHelp() // also exits
   }
-  if (input === 'fr' || input === 'en') {
-    j = await getAllPages(input)
-    show(input, available(j))
-  } else if (input === 'stores') {
-    j = await getStores()
-    console.log(JSON.stringify(j, null, '  '))
+
+  if (cli.flags && cli.flags.language) {
+    cli.flags.language = cli.flags.language.slice(0, 2).toLowerCase()
   }
-  return j
+
+  const j = await implemented[cli.input[0]](cli)
+  console.log(JSON.stringify(j, null, '  '))
 }
 
 module.exports = doit
