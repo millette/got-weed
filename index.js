@@ -7,8 +7,7 @@ const { JSDOM } = require('jsdom')
 const contextRe = / data-context="(\{.+\})"/
 const telRe = /^.*\D\d\D\s\d\D\d/
 
-/*
-const stock = (skus) => got('https://www.sqdc.ca/api/inventory/findInventoryItems', {
+const stocks = (skus) => got('https://www.sqdc.ca/api/inventory/findInventoryItems', {
   json: true,
   headers: {
     'Accept-Language': 'fr-CA',
@@ -17,6 +16,7 @@ const stock = (skus) => got('https://www.sqdc.ca/api/inventory/findInventoryItem
   body: { skus }
 }).then(({ body }) => body)
 
+/*
 const available = (pages) => pages.reduce((a, { stocks, json }) => {
   const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
   return [...a, ...them]
@@ -29,7 +29,7 @@ const searchString = {
 }
 
 const getPage = async (cli, p = 1) => {
-  const lang = cli.flags.language
+  const lang = (cli && cli.flags && cli.flags.language) || 'en'
   const { body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(contextRe)
   if (!m1 || !m1[1]) {
@@ -82,17 +82,21 @@ const products = async (cli) => {
     Url: `https://www.sqdc.ca${Url}`
   }))
 
-  console.error(`${productsFixed.length} items found.`)
+  if (!cli || !cli.flags || !cli.flags.quiet) {
+    console.error(`${productsFixed.length} products found.`)
+  }
   return productsFixed
 }
 products.description = 'List products'
 
-const stores = async () => {
+const stores = async (cli) => {
   const { body } = await got('https://www.sqdc.ca/en-CA/Stores/Directory')
   const storesFound = Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
     .map(parseStore)
 
-  console.error(`${storesFound.length} stores found.`)
+  if (!cli || !cli.flags || !cli.flags.quiet) {
+    console.error(`${storesFound.length} stores found.`)
+  }
   return storesFound
 }
 stores.description = 'List local stores'
@@ -139,7 +143,7 @@ const isSupportedLocation = (l) => {
 const locations = () => supportedLocations.filter(({ support }) => support)
 locations.description = 'List supported countries and provinces/states'
 
-const implemented = {
+const commands = {
   locations,
   products,
   stores
@@ -162,12 +166,11 @@ const doit = async (cli) => {
     command = 'products'
   }
 
-  if (!implemented[command]) {
-    const cmds = Object.keys(implemented).sort().map(JSON.stringify)
+  if (!commands[command]) {
+    const cmds = Object.keys(commands).sort().map(JSON.stringify)
     const last = cmds.pop()
     const err = new Error(`Command must be one of ${cmds.join(', ')} or ${last}.`)
     err.unknown = command
-
     err.code = 1
     throw err
   }
@@ -176,8 +179,9 @@ const doit = async (cli) => {
     cli.flags.language = cli.flags.language.slice(0, 2).toLowerCase()
   }
 
-  return implemented[command](cli)
+  return commands[command](cli)
 }
 
 module.exports = doit
-module.exports.implemented = implemented
+module.exports.commands = commands
+module.exports.stocks = stocks
