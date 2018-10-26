@@ -107,7 +107,25 @@ const supportedLocations = [
     support: 'full'
   },
   {
-    id: 'other'
+    id: 'ocs',
+    aliases: ['on', 'ontario'],
+    url: 'https://ocs.ca/',
+    province: 'Ontario',
+    country: 'Canada'
+  },
+  {
+    id: 'aglc',
+    aliases: ['al', 'alberta'],
+    url: 'https://aglc.ca/cannabisab',
+    province: 'Alberta',
+    country: 'Canada'
+  },
+  {
+    id: 'mynslc',
+    aliases: ['ns', 'nova-scotia'],
+    url: 'https://cannabis.mynslc.com/',
+    province: 'Nova Scotia',
+    country: 'Canada'
   }
 ]
 
