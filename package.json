@@ -20,7 +20,7 @@
     "meow": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "^0.25.0",
+    "ava": "^1.0.0-beta.8",
     "coveralls": "^3.0.2",
     "dependency-check": "^3.2.1",
     "nyc": "^13.1.0",
