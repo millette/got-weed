@@ -23,48 +23,6 @@ const gwClientJson = gwClient.extend({
 const contextRe = / data-context="(\{.+\})"/
 const telRe = /^.*\D\d\D\s\d\D\d/
 
-/*
-https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
-1g, out of stock
-
-https://www.sqdc.ca/api/product/calculatePrices
-{"products":["628582000104-P"]}
-
-https://www.sqdc.ca/api/inventory/findInventoryItems
-{"skus":["628582000098","628582000111","628582000104"]}
---> ["628582000111","628582000104"]
-
-https://www.sqdc.ca/api/product/specifications
-{"productId":"628582000104-P","variantId":"628582000098"}
-
-https://www.sqdc.ca/api/inventory/findInventoryItems
-{"skus":["628582000098"]}
---> []
-
-----
-
-https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
-3.5g, in stock
-
-https://www.sqdc.ca/api/product/specifications
-{"productId":"628582000104-P","variantId":"628582000104"}
-
-https://www.sqdc.ca/api/inventory/findInventoryItems
-{"skus":["628582000104"]}
---> ["628582000104"]
-
-https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
-15g, in stock
-
-https://www.sqdc.ca/api/product/specifications
-{"productId":"628582000104-P","variantId":"628582000111"}
-
-https://www.sqdc.ca/api/inventory/findInventoryItems
-{"skus":["628582000111"]}
---> ["628582000111"]
-
-*/
-
 const knownSkus = [
   '628582000098',
   '628582000197',
@@ -314,7 +272,8 @@ const doit = async (cli) => {
   if (cli && cli.flags) {
     if (cli.flags.language) {
       if (!knownCategories[cli.flags.language]) {
-        cli.flags.language = process.env.LANG || process.env.LANGUAGE || 'en'
+        cli.flags.language = 'en'
+        // istanbul ignore if
         if (!cli.flags.quiet) {
           console.error(`Specified language is not supported, using ${cli.flags.language} instead.`)
         }
@@ -327,6 +286,7 @@ const doit = async (cli) => {
         cli.flags.location = sup.id
       } else {
         cli.flags.location = 'sqdc'
+        // istanbul ignore if
         if (!cli.flags.quiet) {
           console.error(`Specified location is not supported, using ${cli.flags.location} instead.`)
         }
@@ -356,10 +316,6 @@ const doit = async (cli) => {
     err.unknown = command
     err.code = 1
     throw err
-  }
-
-  if (cli.flags && cli.flags.language) {
-    cli.flags.language = cli.flags.language.slice(0, 2).toLowerCase()
   }
 
   return commands[command](cli)
