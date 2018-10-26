@@ -6,6 +6,7 @@ import gw, { commands, stocks, knownSkus } from '.'
 
 test('four commands', (t) => {
   t.deepEqual(Object.keys(commands).sort(), ['categories', 'locations', 'products', 'stores'])
+  // FIXME: each command should also have a description
 })
 
 test('get stores', async (t) => {
