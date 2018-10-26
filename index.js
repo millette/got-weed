@@ -15,8 +15,55 @@ const gwClient = got.extend({
   }
 })
 
+const gwClientJson = gwClient.extend({
+  json: true,
+  headers: { 'X-Requested-With': 'XMLHttpRequest' }
+})
+
 const contextRe = / data-context="(\{.+\})"/
 const telRe = /^.*\D\d\D\s\d\D\d/
+
+/*
+https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
+1g, out of stock
+
+https://www.sqdc.ca/api/product/calculatePrices
+{"products":["628582000104-P"]}
+
+https://www.sqdc.ca/api/inventory/findInventoryItems
+{"skus":["628582000098","628582000111","628582000104"]}
+--> ["628582000111","628582000104"]
+
+https://www.sqdc.ca/api/product/specifications
+{"productId":"628582000104-P","variantId":"628582000098"}
+
+https://www.sqdc.ca/api/inventory/findInventoryItems
+{"skus":["628582000098"]}
+--> []
+
+----
+
+https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
+3.5g, in stock
+
+https://www.sqdc.ca/api/product/specifications
+{"productId":"628582000104-P","variantId":"628582000104"}
+
+https://www.sqdc.ca/api/inventory/findInventoryItems
+{"skus":["628582000104"]}
+--> ["628582000104"]
+
+https://www.sqdc.ca/fr-CA/p-purple-chitral/628582000104-P/628582000098
+15g, in stock
+
+https://www.sqdc.ca/api/product/specifications
+{"productId":"628582000104-P","variantId":"628582000111"}
+
+https://www.sqdc.ca/api/inventory/findInventoryItems
+{"skus":["628582000111"]}
+--> ["628582000111"]
+
+*/
 
 const knownSkus = [
   '628582000098',
@@ -97,13 +144,13 @@ const knownCategories = {
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
 
-const stocks = (skus) => gwClient('/api/inventory/findInventoryItems', {
-  json: true,
-  headers: {
-    'X-Requested-With': 'XMLHttpRequest'
-  },
+const stocks = (skus) => gwClientJson('/api/inventory/findInventoryItems', {
   body: { skus: (skus && skus.length) ? skus : knownSkus }
 }).then(({ body }) => body)
+
+const prices = (products) => gwClientJson('/api/product/calculatePrices', {
+  body: { products }
+}).then(({ body: { ProductPrices } }) => ProductPrices)
 
 /*
 const available = (pages) => pages.reduce((a, { stocks, json }) => {
@@ -134,7 +181,12 @@ const getPage = async (cli, p) => {
   if (!m1 || !m1[1]) {
     throw new Error('Nothing here')
   }
-  return JSON.parse(m1[1].replace(/&quot;/g, '"'))
+  const ret = JSON.parse(m1[1].replace(/&quot;/g, '"'))
+  if (cli && cli.flags && cli.flags.details) {
+    const pp = await prices(ret.ProductSearchResults.SearchResults.map(({ ProductId }) => ProductId))
+    ret.ProductSearchResults.SearchResults = ret.ProductSearchResults.SearchResults.map((x, i) => ({ ...x, priceDetails: pp[i] }))
+  }
+  return ret
 }
 
 const getAllPages = async (cli) => {
@@ -231,15 +283,20 @@ const supportedLocations = [
   }
 ]
 
-/*
-const isSupportedLocation = (l) => {
-  l = l.toLowerCase()
-  return !supportedLocations.find(({ id, aliases }) => [id, ...aliases].map((s) => s.toLowerCase()).indexOf(l) === -1)
-}
-*/
-
 const locations = () => supportedLocations.filter(({ support }) => support)
 locations.description = 'List supported countries and provinces/states'
+
+const isSupportedLocation = (l) => {
+  l = l.toLowerCase()
+  return locations()
+    .find(
+      ({ id, aliases }) => [id, ...aliases]
+        .map(
+          (s) => s.toLowerCase()
+        )
+        .indexOf(l) !== -1
+    )
+}
 
 const commands = {
   categories,
@@ -252,6 +309,29 @@ const doit = async (cli) => {
   let command = cli && cli.input && (cli.input.length === 1) && cli.input[0].toLowerCase()
   if (!command) {
     return
+  }
+
+  if (cli && cli.flags) {
+    if (cli.flags.language) {
+      if (!knownCategories[cli.flags.language]) {
+        cli.flags.language = process.env.LANG || process.env.LANGUAGE || 'en'
+        if (!cli.flags.quiet) {
+          console.error(`Specified language is not supported, using ${cli.flags.language} instead.`)
+        }
+      }
+      cli.flags.language = cli.flags.language.toLowerCase().slice(0, 2)
+    }
+    if (cli.flags.location) {
+      const sup = isSupportedLocation(cli.flags.location)
+      if (sup) {
+        cli.flags.location = sup.id
+      } else {
+        cli.flags.location = 'sqdc'
+        if (!cli.flags.quiet) {
+          console.error(`Specified location is not supported, using ${cli.flags.location} instead.`)
+        }
+      }
+    }
   }
 
   if ((command === 'fr') || (command === 'en')) {
