@@ -56,15 +56,18 @@ const cli = meow(`
     },
     force: {
       type: 'boolean',
-      alias: 'f'
+      alias: 'f',
+      default: false
     },
     details: {
       type: 'boolean',
-      alias: 'd'
+      alias: 'd',
+      default: false
     },
     quiet: {
       type: 'boolean',
-      alias: 'q'
+      alias: 'q',
+      default: false
     },
     'in-stock': {
       type: 'boolean',
