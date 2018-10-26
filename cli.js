@@ -4,7 +4,7 @@
 
 // self
 const gw = require('.')
-const { implemented } = gw
+const { commands } = gw
 const { name } = require('./package.json')
 
 // npm
@@ -32,7 +32,7 @@ const cli = meow(`
     $ ${name} locations
     $ ${name} products --location=qc # also accepts qu(e|é)bec and sqdc
 
-  ${['Commands', ...Object.keys(implemented).map((cmd) => `    ${cmd}\t\t${implemented[cmd].description}`)].join('\n')}
+  ${['Commands', ...Object.keys(commands).sort().map((cmd) => `    ${cmd}\t\t${commands[cmd].description}`)].join('\n')}
 
   Options
     --details   -d\tMore detailled output (not implemented yet)
