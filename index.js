@@ -148,21 +148,12 @@ const getAllPages = async (cli) => {
   const z = await Promise.all(gp)
   z.push(o)
   const products = z.reduce((a, json) => [...a, ...json.ProductSearchResults.SearchResults], [])
-
-  /*
-  if (!cli || !cli.flags) {
-    return products
+  if (cli && cli.flags && cli.flags.inStock !== undefined) {
+    const filter = cli.flags.inStock
+      ? ({ IsOutOfStock }) => !IsOutOfStock
+      : ({ IsOutOfStock }) => IsOutOfStock
+    return products.filter(filter)
   }
-  */
-
-  if (cli.flags.inStock) {
-    return products.filter(({ IsOutOfStock }) => !IsOutOfStock)
-  }
-
-  if (cli.flags.inStock === false) {
-    return products.filter(({ IsOutOfStock }) => IsOutOfStock)
-  }
-
   return products
 }
 
