@@ -35,13 +35,14 @@ const cli = meow(`
   ${['Commands', ...Object.keys(implemented).map((cmd) => `    ${cmd}\t\t${implemented[cmd].description}`)].join('\n')}
 
   Options
-    --details   -d\tMore detailled output
-    --force     -f\tBypass cached files if any and force download
+    --details   -d\tMore detailled output (not implemented yet)
+    --force     -f\tBypass cached files if any and force download (not implemented yet)
     --in-stock  -s\tIn stock only; in-stock=false for the reverse
     --language  -l\tLanguage (fr or en), defaults to $LANG or $LANGUAGE
     --version\t\tOutput software version
     --help\t\tThis help text
 `, {
+  booleanDefault: undefined,
   flags: {
     language,
     help: {
