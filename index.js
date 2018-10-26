@@ -4,6 +4,17 @@
 const got = require('got')
 const { JSDOM } = require('jsdom')
 
+// self
+const { name, version } = require('./package.json')
+
+const gwClient = got.extend({
+  baseUrl: 'https://www.sqdc.ca',
+  headers: {
+    'Accept-Language': 'fr-CA',
+    'user-agent': `${name} v${version}`
+  }
+})
+
 const contextRe = / data-context="(\{.+\})"/
 const telRe = /^.*\D\d\D\s\d\D\d/
 
@@ -78,10 +89,9 @@ const knownSkus = [
   '826966000355'
 ]
 
-const stocks = (skus) => got('https://www.sqdc.ca/api/inventory/findInventoryItems', {
+const stocks = (skus) => gwClient('/api/inventory/findInventoryItems', {
   json: true,
   headers: {
-    'Accept-Language': 'fr-CA',
     'X-Requested-With': 'XMLHttpRequest'
   },
   body: { skus: (skus && skus.length) ? skus : knownSkus }
@@ -101,7 +111,7 @@ const searchString = {
 
 const getPage = async (cli, p = 1) => {
   const lang = (cli && cli.flags && cli.flags.language) || 'en'
-  const { body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
+  const { body } = await gwClient(`/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(contextRe)
   // istanbul ignore if
   if (!m1 || !m1[1]) {
@@ -165,7 +175,7 @@ const products = async (cli) => {
 products.description = 'List products'
 
 const stores = async (cli) => {
-  const { body } = await got('https://www.sqdc.ca/en-CA/Stores/Directory')
+  const { body } = await gwClient('/en-CA/Stores/Directory')
   const storesFound = Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
     .map(parseStore)
 
