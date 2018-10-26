@@ -39,6 +39,7 @@ const cli = meow(`
     --force     -f\tBypass cached files if any and force download (not implemented yet)
     --in-stock  -s\tIn stock only; in-stock=false for the reverse
     --language  -l\tLanguage (fr or en), defaults to $LANG or $LANGUAGE
+    --quiet     -q\tQuiet
     --version\t\tOutput software version
     --help\t\tThis help text
 `, {
@@ -60,6 +61,10 @@ const cli = meow(`
     details: {
       type: 'boolean',
       alias: 'd'
+    },
+    quiet: {
+      type: 'boolean',
+      alias: 'q'
     },
     'in-stock': {
       type: 'boolean',
