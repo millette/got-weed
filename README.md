@@ -26,18 +26,22 @@ Usage Examples
   $ got-weed products --location=qc # also accepts qu(e|é)bec and sqdc
 
 Commands
+  locations       List supported countries and provinces/states
   products        List products
   stores          List local stores
-  locations       List supported countries and provinces/states
 
 Options
+  --details   -d  More detailled output (not implemented yet)
+  --force     -f  Bypass cached files if any and force download (not implemented yet)
   --in-stock  -s  In stock only; in-stock=false for the reverse
   --language  -l  Language (fr or en), defaults to $LANG or $LANGUAGE
-  --force     -f  Bypass cached files if any and force download
-  --details   -d  More detailled output
   --version       Output software version
   --help          This help text
 ```
 
+## Contributors
+* [Robin Millette](https://github.com/millette)
+* [Samuel Wang](https://github.com/samuelwang48)
+
 ## License
-AGPL-v3 © 2018 [Robin Millette](http://robin.millette.info)
+AGPL-v3 © 2018 [Robin Millette](http://robin.millette.info) and contributors
