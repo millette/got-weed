@@ -146,10 +146,22 @@ const implemented = {
 }
 
 const doit = async (cli) => {
-  const command = cli && cli.input && (cli.input.length === 1) && cli.input[0].toLowerCase()
+  let command = cli && cli.input && (cli.input.length === 1) && cli.input[0].toLowerCase()
   if (!command) {
     return
   }
+
+  if ((command === 'fr') || (command === 'en')) {
+    console.error('Warning, "fr" and "en" commands are DEPRECATED and will be removed.')
+    console.error(`Use --language=${command} and --in-stock options instead with the "products" command.`)
+    if (!cli.flags) {
+      cli.flags = {}
+    }
+    cli.flags.language = command
+    cli.flags.inStock = true
+    command = 'products'
+  }
+
   if (!implemented[command]) {
     const cmds = Object.keys(implemented).sort().map(JSON.stringify)
     const last = cmds.pop()
