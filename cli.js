@@ -10,10 +10,7 @@ const { name } = require('./package.json')
 // npm
 const meow = require('meow')
 
-const language = {
-  type: 'string',
-  alias: 'l'
-}
+const language = { type: 'string'}
 
 if (process.env.LANG || process.env.LANGUAGE) {
   language.default = (process.env.LANG || process.env.LANGUAGE).slice(0, 2).toLowerCase()
@@ -40,7 +37,8 @@ const cli = meow(`
     --details   -d\tMore detailled output (not implemented yet)
     --force     -f\tBypass cached files if any and force download (not implemented yet)
     --in-stock  -s\tIn stock only; in-stock=false for the reverse
-    --language  -l\tLanguage (fr or en), defaults to $LANG or $LANGUAGE
+    --language    \tLanguage (fr or en), defaults to $LANG or $LANGUAGE
+    --location  -l\tSpecify location
     --quiet     -q\tQuiet
     --version\t\tOutput software version
     --help\t\tThis help text
@@ -48,6 +46,10 @@ const cli = meow(`
   booleanDefault: undefined,
   flags: {
     language,
+    location: {
+      type: 'string',
+      alias: 'l'
+    },
     help: {
       type: 'boolean',
       alias: 'h'
