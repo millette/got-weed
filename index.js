@@ -99,6 +99,22 @@ const knownCategories = {
   en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
 }
 
+const specifications = async (cli) => {
+  // {"productId":"697238111297-P","variantId":"697238111303"}
+  const { body: { Groups: [ { Attributes }] } } = await gwClientJson('/api/product/specifications', {
+    body: {
+      productId: `${cli.flags.sku}-P`,
+      variantId: cli.flags.sku
+    }
+  })
+
+  const ret = {}
+  Attributes.forEach(({ PropertyName, Title, Value }) => {
+    ret[PropertyName] = { Title, Value }
+  })
+  return ret
+}
+
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
 
@@ -260,6 +276,7 @@ const commands = {
   categories,
   locations,
   products,
+  specifications,
   stores
 }
 
