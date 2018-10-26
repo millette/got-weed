@@ -4,3 +4,10 @@ got-weed-macos
 got-weed-win.exe
 .env
 .nyc_output
+hop.txt
+prods-full.json
+prods.json
+products-full.json
+products-in-stock.json
+products-not-in-stock.json
+urls.txt
