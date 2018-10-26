@@ -77,9 +77,16 @@ const cli = meow(`
       alias: 'q',
       default: false
     },
+    sku: {
+      type: 'string'
+    },
     'in-stock': {
       type: 'boolean',
       alias: 's'
+    },
+    debug: {
+      type: 'boolean',
+      default: false
     }
   }
 })
@@ -88,7 +95,7 @@ const jsoned = (j) => {
   if (!j) {
     cli.showHelp(0) // also exits
   }
-  if (j.length) {
+  if (j && (j.length || Object.keys(j).length)) {
     console.log(JSON.stringify(j, null, '  '))
   } else {
     console.log('Nothing found.')
@@ -98,7 +105,11 @@ const jsoned = (j) => {
 gw(cli)
   .then(jsoned)
   .catch((e) => {
-    console.error(e.toString())
+    if (cli && cli.flags && cli.flags.debug) {
+      console.error(e)
+    } else {
+      console.error(e.toString())
+    }
     const code = e.code || 127
     delete e.code
     if (Object.keys(e).length) {
