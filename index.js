@@ -32,6 +32,7 @@ const getPage = async (cli, p = 1) => {
   const lang = (cli && cli.flags && cli.flags.language) || 'en'
   const { body } = await got(`https://www.sqdc.ca/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
   const m1 = body.match(contextRe)
+  // istanbul ignore if
   if (!m1 || !m1[1]) {
     throw new Error('Nothing here')
   }
@@ -50,9 +51,11 @@ const getAllPages = async (cli) => {
   z.push(o)
   const products = z.reduce((a, json) => [...a, ...json.ProductSearchResults.SearchResults], [])
 
+  /*
   if (!cli || !cli.flags) {
     return products
   }
+  */
 
   if (cli.flags.inStock) {
     return products.filter(({ IsOutOfStock }) => !IsOutOfStock)
@@ -82,6 +85,7 @@ const products = async (cli) => {
     Url: `https://www.sqdc.ca${Url}`
   }))
 
+  // istanbul ignore if
   if (!cli || !cli.flags || !cli.flags.quiet) {
     console.error(`${productsFixed.length} products found.`)
   }
@@ -94,6 +98,7 @@ const stores = async (cli) => {
   const storesFound = Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
     .map(parseStore)
 
+  // istanbul ignore if
   if (!cli || !cli.flags || !cli.flags.quiet) {
     console.error(`${storesFound.length} stores found.`)
   }
@@ -156,8 +161,12 @@ const doit = async (cli) => {
   }
 
   if ((command === 'fr') || (command === 'en')) {
-    console.error('Warning, "fr" and "en" commands are DEPRECATED and will be removed.')
-    console.error(`Use --language=${command} and --in-stock options instead with the "products" command.`)
+    // istanbul ignore if
+    if (!cli || !cli.flags || !cli.flags.quiet) {
+      console.error('Warning, "fr" and "en" commands are DEPRECATED and will be removed.')
+      console.error(`Use --language=${command} and --in-stock options instead with the "products" command.`)
+    }
+    // istanbul ignore if
     if (!cli.flags) {
       cli.flags = {}
     }
