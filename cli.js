@@ -4,6 +4,7 @@
 
 // self
 const gw = require('.')
+const { implemented } = gw
 const { name } = require('./package.json')
 
 // npm
@@ -31,18 +32,15 @@ const cli = meow(`
     $ ${name} locations
     $ ${name} products --location=qc # also accepts qu(e|é)bec and sqdc
 
-  Commands
-    products        List products
-    stores          List local stores
-    locations       List supported countries and provinces/states
+  ${['Commands', ...Object.keys(implemented).map((cmd) => `    ${cmd}\t\t${implemented[cmd].description}`)].join('\n')}
 
   Options
-    --in-stock  -s  In stock only; in-stock=false for the reverse
-    --language  -l  Language (fr or en), defaults to $LANG or $LANGUAGE
-    --force     -f  Bypass cached files if any and force download
-    --details   -d  More detailled output
-    --version       Output software version
-    --help          This help text
+    --details   -d\tMore detailled output
+    --force     -f\tBypass cached files if any and force download
+    --in-stock  -s\tIn stock only; in-stock=false for the reverse
+    --language  -l\tLanguage (fr or en), defaults to $LANG or $LANGUAGE
+    --version\t\tOutput software version
+    --help\t\tThis help text
 `, {
   flags: {
     language,
@@ -69,5 +67,21 @@ const cli = meow(`
   }
 })
 
+const jsoned = (j) => {
+  if (!j) {
+    cli.showHelp(0) // also exits
+  }
+  console.log(JSON.stringify(j, null, '  '))
+}
+
 gw(cli)
-  .catch(console.error)
+  .then(jsoned)
+  .catch((e) => {
+    console.error(e.toString())
+    const code = e.code || 127
+    delete e.code
+    if (Object.keys(e).length) {
+      console.error(JSON.stringify(e))
+    }
+    cli.showHelp(code)
+  })

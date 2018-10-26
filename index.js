@@ -81,41 +81,16 @@ const parseStore = (s) => {
 }
 
 const products = async (cli) => {
-  // const json = await getAllPages(cli.flags.language)
-  // const json = await getAllPages(cli)
   const products = await getAllPages(cli)
-  /*
-  console.log('pages:', pages.length)
-  console.log('page #0:', pages[0])
-  return
-  */
-  // const products = available(pages).map(({
-  /*
-  const products = json.map(({
-    ProductId,
-    Sku,
-    FullDisplayName,
-    Brand,
-    Description,
-    Url,
-    Pricing: { DisplayPrice },
-    CategoryId,
-    AromaDetailed
-  }) => ({
-    ProductId,
-    Sku,
-    FullDisplayName,
-    Brand,
-    Description,
-    Url: `https://www.sqdc.ca${Url}`,
-    DisplayPrice,
-    CategoryId,
-    AromaDetailed: AromaDetailed && AromaDetailed.join(', ')
+  const productsFixed = json.map(({ Url, ...product }) => ({
+    ...product,
+    Url: `https://www.sqdc.ca${Url}`
   }))
-  */
-  console.error(`${products.length} items found.`)
-  return products
+
+  console.error(`${productsFixed.length} items found.`)
+  return productsFixed
 }
+products.description = 'List products'
 
 const stores = async () => {
   const { body } = await got('https://www.sqdc.ca/en-CA/Stores/Directory')
@@ -125,6 +100,7 @@ const stores = async () => {
   console.error(`${storesFound.length} stores found.`)
   return storesFound
 }
+stores.description = 'List local stores'
 
 const supportedLocations = [
   {
@@ -132,7 +108,11 @@ const supportedLocations = [
     aliases: ['qc', 'québec', 'quebec'],
     url: 'https://www.sqdc.ca/',
     province: 'Québec',
-    country: 'Canada'
+    country: 'Canada',
+    support: 'full'
+  },
+  {
+    id: 'other',
   }
 ]
 
@@ -141,34 +121,36 @@ const isSupportedLocation = (l) => {
   return !supportedLocations.find(({ id, aliases }) => [id, ...aliases].map((s) => s.toLowerCase()).indexOf(l) === -1)
 }
 
-const locations = async () => supportedLocations
+const locations = () => supportedLocations.filter(({ support }) => support)
+locations.description = 'List supported countries and provinces/states'
 
 const implemented = {
+  locations,
   products,
-  stores,
-  locations
+  stores
 }
 
 const doit = async (cli) => {
-  if (!cli || !cli.input || (cli.input.length !== 1)) {
-    cli.showHelp() // also exits
+  const command = cli && cli.input && (cli.input.length === 1) && cli.input[0].toLowerCase()
+  if (!command) {
+    return
   }
-
-  cli.input[0] = cli.input[0].toLowerCase()
-  const command = cli.input[0]
   if (!implemented[command]) {
-    const cmds = Object.keys(implemented).map(JSON.stringify)
+    const cmds = Object.keys(implemented).sort().map(JSON.stringify)
     const last = cmds.pop()
-    console.error(`Unknown: "${command}". Command must be one of ${cmds.join(', ')} or ${last}.`)
-    cli.showHelp() // also exits
+    const err = new Error(`Command must be one of ${cmds.join(', ')} or ${last}.`)
+    err.unknown = command
+
+    err.code = 1
+    throw err
   }
 
   if (cli.flags && cli.flags.language) {
     cli.flags.language = cli.flags.language.slice(0, 2).toLowerCase()
   }
 
-  const j = await implemented[cli.input[0]](cli)
-  console.log(JSON.stringify(j, null, '  '))
+  return implemented[command](cli)
 }
 
 module.exports = doit
+module.exports.implemented = implemented
