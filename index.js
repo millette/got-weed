@@ -89,6 +89,14 @@ const knownSkus = [
   '826966000355'
 ]
 
+const knownCategories = {
+  fr: ['fleurs-sechees', 'pilules', 'moulu', 'preroules', 'huiles', 'atomiseurs-oraux'],
+  en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
+}
+
+const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
+categories.description = 'List supported categories'
+
 const stocks = (skus) => gwClient('/api/inventory/findInventoryItems', {
   json: true,
   headers: {
@@ -109,9 +117,18 @@ const searchString = {
   en: 'Search'
 }
 
-const getPage = async (cli, p = 1) => {
+const getCategoryPage = async (cli, p) => {
   const lang = (cli && cli.flags && cli.flags.language) || 'en'
-  const { body } = await gwClient(`/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`)
+  const cats = categories(cli)
+  const category = cats.indexOf(cli && cli.flags && cli.flags.category) !== -1 && cli.flags.category.toLowerCase()
+  const u = category
+    ? `/${lang}-CA/${category}?page=${p}`
+    : `/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`
+  return gwClient(u).then(({ body }) => body)
+}
+
+const getPage = async (cli, p) => {
+  const body = await getCategoryPage(cli, p)
   const m1 = body.match(contextRe)
   // istanbul ignore if
   if (!m1 || !m1[1]) {
@@ -121,7 +138,7 @@ const getPage = async (cli, p = 1) => {
 }
 
 const getAllPages = async (cli) => {
-  const o = await getPage(cli)
+  const o = await getPage(cli, 1)
   const nPages = o.ProductSearchResults.Pagination.TotalNumberOfPages
   let r
   const gp = []
@@ -168,7 +185,9 @@ const products = async (cli) => {
 
   // istanbul ignore if
   if (!cli || !cli.flags || !cli.flags.quiet) {
-    console.error(`${productsFixed.length} products found.`)
+    if (productsFixed.length) {
+      console.error(`${productsFixed.length} products found.`)
+    }
   }
   return productsFixed
 }
@@ -181,7 +200,9 @@ const stores = async (cli) => {
 
   // istanbul ignore if
   if (!cli || !cli.flags || !cli.flags.quiet) {
-    console.error(`${storesFound.length} stores found.`)
+    if (storesFound.length) {
+      console.error(`${storesFound.length} stores found.`)
+    }
   }
   return storesFound
 }
@@ -230,6 +251,7 @@ const locations = () => supportedLocations.filter(({ support }) => support)
 locations.description = 'List supported countries and provinces/states'
 
 const commands = {
+  categories,
   locations,
   products,
   stores

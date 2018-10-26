@@ -30,11 +30,13 @@ const cli = meow(`
     $ ${name} products --in-stock=no --language=en
     $ ${name} stores
     $ ${name} locations
+    $ ${name} categories
     $ ${name} products --location=qc # also accepts qu(e|é)bec and sqdc
 
   ${['Commands', ...Object.keys(commands).sort().map((cmd) => `    ${cmd}\t\t${commands[cmd].description}`)].join('\n')}
 
   Options
+    --category  -c\tFilter by category
     --details   -d\tMore detailled output (not implemented yet)
     --force     -f\tBypass cached files if any and force download (not implemented yet)
     --in-stock  -s\tIn stock only; in-stock=false for the reverse
@@ -53,6 +55,10 @@ const cli = meow(`
     version: {
       type: 'boolean',
       alias: 'v'
+    },
+    category: {
+      type: 'string',
+      alias: 'c'
     },
     force: {
       type: 'boolean',
@@ -80,7 +86,11 @@ const jsoned = (j) => {
   if (!j) {
     cli.showHelp(0) // also exits
   }
-  console.log(JSON.stringify(j, null, '  '))
+  if (j.length) {
+    console.log(JSON.stringify(j, null, '  '))
+  } else {
+    console.log('Nothing found.')
+  }
 }
 
 gw(cli)
