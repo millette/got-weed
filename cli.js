@@ -10,7 +10,7 @@ const { name } = require('./package.json')
 // npm
 const meow = require('meow')
 
-const language = { type: 'string'}
+const language = { type: 'string' }
 
 if (process.env.LANG || process.env.LANGUAGE) {
   language.default = (process.env.LANG || process.env.LANGUAGE).slice(0, 2).toLowerCase()
