@@ -2,7 +2,6 @@
 
 // npm
 const got = require('got')
-const { JSDOM } = require('jsdom')
 
 // self
 const { name, version } = require('./package.json')
@@ -21,7 +20,6 @@ const gwClientJson = gwClient.extend({
 })
 
 const contextRe = / data-context="(\{.+\})"/
-const telRe = /^.*\D\d\D\s\d\D\d/
 
 const knownSkus = [
   '628582000098',
@@ -99,9 +97,10 @@ const knownCategories = {
   en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
 }
 
+/*
 const specifications = async (cli) => {
   // {"productId":"697238111297-P","variantId":"697238111303"}
-  const { body: { Groups: [ { Attributes }] } } = await gwClientJson('/api/product/specifications', {
+  const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
     body: {
       productId: `${cli.flags.sku}-P`,
       variantId: cli.flags.sku
@@ -114,6 +113,7 @@ const specifications = async (cli) => {
   })
   return ret
 }
+*/
 
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
@@ -183,16 +183,6 @@ const getAllPages = async (cli) => {
   return products
 }
 
-const parseStore = (s) => {
-  const rawAddress = s.querySelector('address').textContent
-  const tel = rawAddress.replace(telRe, '')
-  return {
-    storeName: s.querySelector('h6').textContent,
-    address: rawAddress.replace(tel, ''),
-    tel
-  }
-}
-
 const products = async (cli) => {
   const products = await getAllPages(cli)
   const productsFixed = products.map(({ Url, ...product }) => ({
@@ -211,17 +201,22 @@ const products = async (cli) => {
 products.description = 'List products'
 
 const stores = async (cli) => {
-  const { body } = await gwClient('/en-CA/Stores/Directory')
-  const storesFound = Array.from(new JSDOM(body).window.document.querySelectorAll('.p-10'))
-    .map(parseStore)
-
+  const { body: { Stores } } = await gwClientJson('/api/storelocator/markers', {
+    body: {
+      mapBounds: {
+        southWest: { lat: 33.57484558618131, lng: -112.53508260000001 },
+        northEast: { lat: 54.67163141409002, lng: -29.91789510000001 }
+      },
+      pageSize: 100
+    }
+  })
   // istanbul ignore if
   if (!cli || !cli.flags || !cli.flags.quiet) {
-    if (storesFound.length) {
-      console.error(`${storesFound.length} stores found.`)
+    if (Stores.length) {
+      console.error(`${Stores.length} stores found.`)
     }
   }
-  return storesFound
+  return Stores
 }
 stores.description = 'List local stores'
 
@@ -276,7 +271,7 @@ const commands = {
   categories,
   locations,
   products,
-  specifications,
+  // specifications,
   stores
 }
 
