@@ -4,9 +4,12 @@ import test from 'ava'
 // self
 import gw, { commands, stocks, knownSkus } from '.'
 
-test('four commands', (t) => {
-  t.deepEqual(Object.keys(commands).sort(), ['categories', 'locations', 'products', 'stores'])
+test('five commands', (t) => {
+  const knownCommands = ['categories', 'locations', 'products', 'specs', 'stores']
+  t.deepEqual(Object.keys(commands).sort(), knownCommands)
   // FIXME: each command should also have a description
+  const n = knownCommands.filter((cmd) => commands[cmd].description).length
+  t.is(knownCommands.length, n)
 })
 
 test('get stores', async (t) => {
@@ -77,4 +80,4 @@ test('nothing (help)', async (t) => {
   t.falsy(x)
 })
 
-test('cli (fail)', (t) => t.throwsAsync(gw({ input: ['jo'] }), 'Command must be one of "categories", "locations", "products" or "stores".'))
+test('cli (fail)', (t) => t.throwsAsync(gw({ input: ['jo'] }), 'Command must be one of "categories", "locations", "products", "specs" or "stores".'))
