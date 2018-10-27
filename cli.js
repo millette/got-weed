@@ -39,6 +39,7 @@ const cli = meow(`
     --in-stock  -s\tIn stock only; in-stock=false for the reverse
     --language    \tLanguage (fr or en), defaults to $LANG or $LANGUAGE
     --location  -l\tSpecify location
+    --sku         \tProduct id (sku), used with the specs command
     --quiet     -q\tQuiet
     --version\t\tOutput software version
     --help\t\tThis help text
