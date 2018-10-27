@@ -7,9 +7,14 @@ import gw, { commands, stocks, knownSkus } from '.'
 test('five commands', (t) => {
   const knownCommands = ['categories', 'locations', 'products', 'specs', 'stores']
   t.deepEqual(Object.keys(commands).sort(), knownCommands)
-  // FIXME: each command should also have a description
   const n = knownCommands.filter((cmd) => commands[cmd].description).length
   t.is(knownCommands.length, n)
+})
+
+test('get product details (specs)', async (t) => {
+  const { THCContentAverage, CannabisType } = await gw({ input: ['specs'], flags: { sku: '697238111297', quiet: true } })
+  t.is(THCContentAverage.Value, '16,00000')
+  t.is(CannabisType.Value, 'Sativa')
 })
 
 test('get stores', async (t) => {

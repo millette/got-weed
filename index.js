@@ -111,6 +111,7 @@ const specs = async (cli) => {
   })
   return ret
 }
+specs.description = 'Details about a product, use the --sku option to specify.'
 
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
