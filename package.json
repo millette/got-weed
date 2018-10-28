@@ -15,6 +15,7 @@
     "url": "http://robin.millette.info"
   },
   "dependencies": {
+    "fast-json-stable-stringify": "^2.0.0",
     "got": "^9.2.2",
     "meow": "^5.0.0"
   },
