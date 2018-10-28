@@ -1,10 +1,14 @@
-// use strict
+'use strict'
 
 // npm
 const got = require('got')
 
 // self
 const { name, version } = require('./package.json')
+const caching = require('./lib/cache')
+
+const LONG_TTL = 60 * 60 * 24
+// const SHORT_TTL = 60
 
 const gwClient = got.extend({
   baseUrl: 'https://www.sqdc.ca',
@@ -97,12 +101,9 @@ const knownCategories = {
   en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
 }
 
-const specs = async (cli) => {
+const specsImp = async (body) => {
   const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
-    body: {
-      productId: `${cli.flags.sku}-P`,
-      variantId: cli.flags.sku
-    }
+    body
   })
 
   const ret = {}
@@ -111,6 +112,13 @@ const specs = async (cli) => {
   })
   return ret
 }
+
+const cSpecs = caching(specsImp, 'specs-v1', LONG_TTL)
+
+const specs = (cli) => cSpecs({
+  productId: `${cli.flags.sku}-P`,
+  variantId: cli.flags.sku
+})
 specs.description = 'Details about a product, use the --sku option to specify.'
 
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
@@ -119,6 +127,8 @@ categories.description = 'List supported categories'
 const stocks = (skus) => gwClientJson('/api/inventory/findInventoryItems', {
   body: { skus: (skus && skus.length) ? skus : knownSkus }
 }).then(({ body }) => body)
+
+// const stocks = caching(stocksImp, 'stocks-v1', SHORT_TTL)
 
 const prices = (products) => gwClientJson('/api/product/calculatePrices', {
   body: { products }
