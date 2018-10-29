@@ -5,9 +5,9 @@ const got = require('got')
 
 // self
 const { name, version } = require('./package.json')
-const caching = require('./lib/cache')
+// const caching = require('./lib/cache')
 
-const LONG_TTL = 60 * 60 * 24
+// const LONG_TTL = 60 * 60 * 24
 // const SHORT_TTL = 60
 
 const gwClient = got.extend({
@@ -102,6 +102,7 @@ const knownCategories = {
 }
 
 const specsImp = async (body) => {
+  // RYM
   const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
     body
   })
@@ -113,9 +114,10 @@ const specsImp = async (body) => {
   return ret
 }
 
-const cSpecs = caching(specsImp, 'specs-v1', LONG_TTL)
+// const cSpecs = caching(specsImp, 'specs-v1', LONG_TTL)
 
-const specs = (cli) => cSpecs({
+// const specs = (cli) => cSpecs({
+const specs = (cli) => specsImp({
   productId: `${cli.flags.sku}-P`,
   variantId: cli.flags.sku
 })
@@ -124,12 +126,14 @@ specs.description = 'Details about a product, use the --sku option to specify.'
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
 
+// RYM
 const stocks = (skus) => gwClientJson('/api/inventory/findInventoryItems', {
   body: { skus: (skus && skus.length) ? skus : knownSkus }
 }).then(({ body }) => body)
 
 // const stocks = caching(stocksImp, 'stocks-v1', SHORT_TTL)
 
+// RYM
 const prices = (products) => gwClientJson('/api/product/calculatePrices', {
   body: { products }
 }).then(({ body: { ProductPrices } }) => ProductPrices)
@@ -153,6 +157,7 @@ const getCategoryPage = async (cli, p) => {
   const u = category
     ? `/${lang}-CA/${category}?page=${p}`
     : `/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`
+  // RYM
   return gwClient(u).then(({ body }) => body)
 }
 
@@ -209,6 +214,7 @@ const products = async (cli) => {
 products.description = 'List products'
 
 const stores = async (cli) => {
+  // RYM
   const { body: { Stores } } = await gwClientJson('/api/storelocator/markers', {
     body: {
       mapBounds: {
