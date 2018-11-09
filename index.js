@@ -101,6 +101,7 @@ const knownCategories = {
   en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
 }
 
+/*
 const specsImp = async (body) => {
   // RYM
   const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
@@ -113,30 +114,73 @@ const specsImp = async (body) => {
   })
   return ret
 }
+*/
 
 // const cSpecs = caching(specsImp, 'specs-v1', LONG_TTL)
 
 // const specs = (cli) => cSpecs({
+/*
 const specs = (cli) => specsImp({
   productId: `${cli.flags.sku}-P`,
   variantId: cli.flags.sku
 })
+*/
+
+// RYM want cache
+const specs = async (cli) => {
+  const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
+    body: {
+      productId: `${cli.flags.sku}-P`,
+      variantId: cli.flags.sku
+    }
+  })
+
+  const ret = {}
+  Attributes.forEach(({ PropertyName, Title, Value }) => {
+    ret[PropertyName] = { Title, Value }
+  })
+  return ret
+}
+
+/*
+specsImp({
+  productId: `${cli.flags.sku}-P`,
+  variantId: cli.flags.sku
+})
+*/
 specs.description = 'Details about a product, use the --sku option to specify.'
 
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
 categories.description = 'List supported categories'
 
-// RYM
+// RYM want cache
 const stocks = (skus) => gwClientJson('/api/inventory/findInventoryItems', {
   body: { skus: (skus && skus.length) ? skus : knownSkus }
 }).then(({ body }) => body)
 
 // const stocks = caching(stocksImp, 'stocks-v1', SHORT_TTL)
 
-// RYM
-const prices = (products) => gwClientJson('/api/product/calculatePrices', {
-  body: { products }
-}).then(({ body: { ProductPrices } }) => ProductPrices)
+const pricesImp2 = async (u, body, transform) => {
+  const { body } = await gwClientJson(u, { body })
+  return transform(body)
+}
+
+const pricesImp = caching(pricesImp2, 'pricesImp2', 30)
+
+const prices = async (products) => pricesImp(
+  '/api/product/calculatePrices', { products }, (body) => body.ProductPrices
+)
+
+// RYM want cache
+/*
+const prices = async (products) => {
+  const { body } = await gwClientJson('/api/product/calculatePrices', {
+    body: { products }
+  })
+  const { ProductPrices } = body
+  return ProductPrices
+}
+*/
 
 /*
 const available = (pages) => pages.reduce((a, { stocks, json }) => {
@@ -150,6 +194,7 @@ const searchString = {
   en: 'Search'
 }
 
+// RYM want cache
 const getCategoryPage = async (cli, p) => {
   const lang = (cli && cli.flags && cli.flags.language) || 'en'
   const cats = categories(cli)
@@ -157,7 +202,6 @@ const getCategoryPage = async (cli, p) => {
   const u = category
     ? `/${lang}-CA/${category}?page=${p}`
     : `/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`
-  // RYM
   return gwClient(u).then(({ body }) => body)
 }
 
@@ -213,8 +257,8 @@ const products = async (cli) => {
 }
 products.description = 'List products'
 
+// RYM want cache
 const stores = async (cli) => {
-  // RYM
   const { body: { Stores } } = await gwClientJson('/api/storelocator/markers', {
     body: {
       mapBounds: {
