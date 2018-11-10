@@ -23,7 +23,8 @@ const specs = async (cli) => {
         productId: `${cli.flags.sku}-P`,
         variantId: cli.flags.sku
       }
-    }
+    },
+    cli.flags.force
   )
   const ret = {}
   Attributes.forEach(({ PropertyName, Title, Value }) => {
@@ -39,12 +40,12 @@ categories.description = 'List supported categories'
 
 const stocksCached = caching(true, 'stocks', SHORT_TTL)
 
-const stocks = (skus) => stocksCached({ u: '/api/inventory/findInventoryItems', o: { skus } })
+const stocks = (skus, force) => stocksCached({ u: '/api/inventory/findInventoryItems', o: { skus } }, force)
 
 const pricesCached = caching(true, 'prices', LONG_TTL)
 
-const prices = async (products) => {
-  const { ProductPrices } = await pricesCached({ u: '/api/product/calculatePrices', o: { products } })
+const prices = async (products, force) => {
+  const { ProductPrices } = await pricesCached({ u: '/api/product/calculatePrices', o: { products } }, force)
   return ProductPrices
 }
 
@@ -62,7 +63,7 @@ const getCategoryPage = async (cli, p) => {
   const u = category
     ? `/${lang}-CA/${category}?page=${p}`
     : `/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`
-  return gwClient({ u })
+  return gwClient({ u }, cli.flags.force)
 }
 
 const getPage = async (cli, p) => {
@@ -74,7 +75,7 @@ const getPage = async (cli, p) => {
   }
   const ret = JSON.parse(m1[1].replace(/&quot;/g, '"'))
   if (cli && cli.flags && cli.flags.details) {
-    const pp = await prices(ret.ProductSearchResults.SearchResults.map(({ ProductId }) => ProductId))
+    const pp = await prices(ret.ProductSearchResults.SearchResults.map(({ ProductId }) => ProductId), cli.flags.force)
     ret.ProductSearchResults.SearchResults = ret.ProductSearchResults.SearchResults.map((x, i) => ({ ...x, priceDetails: pp[i] }))
   }
   return ret
@@ -130,7 +131,8 @@ const stores = async (cli) => {
         },
         pageSize: 100
       }
-    }
+    },
+    cli.flags.force
   )
 
   // istanbul ignore if
