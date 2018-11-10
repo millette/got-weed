@@ -1,138 +1,20 @@
 'use strict'
 
-// npm
-// const got = require('got')
-
 // self
-// const { name, version } = require('./package.json')
 const caching = require('./lib/cache')
 
 const LONG_TTL = 60 * 60 * 24
 const SHORT_TTL = 60 * 5
 
-/*
-const gwClient = got.extend({
-  baseUrl: 'https://www.sqdc.ca',
-  headers: {
-    'Accept-Language': 'fr-CA',
-    'user-agent': `${name} v${version}`
-  }
-})
-
-const gwClientJson = gwClient.extend({
-  json: true,
-  headers: { 'X-Requested-With': 'XMLHttpRequest' }
-})
-*/
-
 const contextRe = / data-context="(\{.+\})"/
-
-/*
-const knownSkus = [
-  '628582000098',
-  '628582000197',
-  '628582000234',
-  '628582000302',
-  '628582000357',
-  '628582000524',
-  '628582000562',
-  '629108001063',
-  '629108006068',
-  '629108009069',
-  '629108011062',
-  '629108013066',
-  '629108015060',
-  '629108017064',
-  '629108022068',
-  '629108026066',
-  '629108034061',
-  '629108037062',
-  '629108500061',
-  '629108501068',
-  '629108502065',
-  '629108503062',
-  '629108504069',
-  '629108505066',
-  '629108506063',
-  '629108507060',
-  '688083001031',
-  '688083001260',
-  '688083002052',
-  '688083002090',
-  '688083002137',
-  '688083002236',
-  '688083002267',
-  '694144000134',
-  '694144000172',
-  '694144000189',
-  '694144000219',
-  '694144000226',
-  '694144000653',
-  '694144000660',
-  '694144000677',
-  '694144000684',
-  '694144000691',
-  '694144001834',
-  '694144001858',
-  '697238111112',
-  '697238111136',
-  '697238111150',
-  '697238111174',
-  '697238111198',
-  '697238111235',
-  '697238111259',
-  '697238111273',
-  '697238111297',
-  '697238111310',
-  '697238111402',
-  '697238111426',
-  '697238111440',
-  '697238111495',
-  '697238111679',
-  '826966000010',
-  '826966000027',
-  '826966000034',
-  '826966000041',
-  '826966000287',
-  '826966000294',
-  '826966000348',
-  '826966000355'
-]
-*/
 
 const knownCategories = {
   fr: ['fleurs-sechees', 'pilules', 'moulu', 'preroules', 'huiles', 'atomiseurs-oraux'],
   en: ['dried-flowers', 'pills', 'ground', 'pre-rolled', 'oils', 'oral-sprays']
 }
 
-/*
-const specsImp = async (body) => {
-  // RYM
-  const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
-    body
-  })
-
-  const ret = {}
-  Attributes.forEach(({ PropertyName, Title, Value }) => {
-    ret[PropertyName] = { Title, Value }
-  })
-  return ret
-}
-*/
-
-// const cSpecs = caching(specsImp, 'specs-v1', LONG_TTL)
-
-// const specs = (cli) => cSpecs({
-/*
-const specs = (cli) => specsImp({
-  productId: `${cli.flags.sku}-P`,
-  variantId: cli.flags.sku
-})
-*/
-
 const specsCached = caching(true, 'specs', SHORT_TTL)
 
-// RYM want cache
 const specs = async (cli) => {
   const { Groups: [{ Attributes }] } = await specsCached(
     {
@@ -143,16 +25,6 @@ const specs = async (cli) => {
       }
     }
   )
-
-  /*
-  const { body: { Groups: [{ Attributes }] } } = await gwClientJson('/api/product/specifications', {
-    body: {
-      productId: `${cli.flags.sku}-P`,
-      variantId: cli.flags.sku
-    }
-  })
-  */
-
   const ret = {}
   Attributes.forEach(({ PropertyName, Title, Value }) => {
     ret[PropertyName] = { Title, Value }
@@ -160,12 +32,6 @@ const specs = async (cli) => {
   return ret
 }
 
-/*
-specsImp({
-  productId: `${cli.flags.sku}-P`,
-  variantId: cli.flags.sku
-})
-*/
 specs.description = 'Details about a product, use the --sku option to specify.'
 
 const categories = (cli) => knownCategories[(cli && cli.flags && cli.flags.language) || 'en']
@@ -173,75 +39,14 @@ categories.description = 'List supported categories'
 
 const stocksCached = caching(true, 'stocks', SHORT_TTL)
 
-// RYM want cache
 const stocks = (skus) => stocksCached({ u: '/api/inventory/findInventoryItems', o: { skus } })
-/*
-const stocks = (skus) => gwClientJson('/api/inventory/findInventoryItems', {
-  body: { skus }
-  // body: { skus: (skus && skus.length) ? skus : knownSkus }
-}).then(({ body }) => body)
-*/
-
-// const stocks = caching(stocksImp, 'stocks-v1', SHORT_TTL)
-
-/*
-const pricesImp2 = async (u, body, transform) => {
-  // const { body } = await gwClientJson(u, { body })
-  // return transform(body)
-  const res = await gwClientJson(u, { body })
-  return transform(res.body)
-}
-
-const pricesImp = caching(pricesImp2, 'pricesImp2', 30)
-
-const prices = async (products) => pricesImp(
-  '/api/product/calculatePrices',
-  { products },
-  (body) => body.ProductPrices
-)
-*/
-
-/*
-const gwClientJsonToCache = async (u, before, after) => {
-  const { body } = await gwClientJson('/api/product/calculatePrices', {
-    body: { products }
-  })
-}
-
-const oy = gwClientJsonToCache(
-  '/api/product/calculatePrices',
-  (products) => ({ body: { products } }),
-  (res) => res.body.ProductPrices
-)
-
-const prices = async (products) => {
-*/
 
 const pricesCached = caching(true, 'prices', LONG_TTL)
-
-// RYM want cache
 
 const prices = async (products) => {
   const { ProductPrices } = await pricesCached({ u: '/api/product/calculatePrices', o: { products } })
   return ProductPrices
 }
-
-/*
-const prices = async (products) => {
-  const { body } = await gwClientJson('/api/product/calculatePrices', {
-    body: { products }
-  })
-  const { ProductPrices } = body
-  return ProductPrices
-}
-*/
-
-/*
-const available = (pages) => pages.reduce((a, { stocks, json }) => {
-  const them = json.ProductSearchResults.SearchResults.filter((x) => stocks.indexOf(x.Sku) !== -1)
-  return [...a, ...them]
-}, [])
-*/
 
 const searchString = {
   fr: 'Rechercher',
@@ -250,7 +55,6 @@ const searchString = {
 
 const gwClient = caching(false, 'page', SHORT_TTL)
 
-// RYM want cache
 const getCategoryPage = async (cli, p) => {
   const lang = (cli && cli.flags && cli.flags.language) || 'en'
   const cats = categories(cli)
@@ -258,7 +62,6 @@ const getCategoryPage = async (cli, p) => {
   const u = category
     ? `/${lang}-CA/${category}?page=${p}`
     : `/${lang}-CA/${searchString[lang]}?keywords=*&sortDirection=asc&page=${p}`
-  // return gwClient(u).then(({ body }) => body)
   return gwClient({ u })
 }
 
@@ -338,28 +141,6 @@ const stores = async (cli) => {
   }
   return Stores
 }
-
-// RYM want cache
-/*
-const stores = async (cli) => {
-  const { body: { Stores } } = await gwClientJson('/api/storelocator/markers', {
-    body: {
-      mapBounds: {
-        southWest: { lat: 33.57484558618131, lng: -112.53508260000001 },
-        northEast: { lat: 54.67163141409002, lng: -29.91789510000001 }
-      },
-      pageSize: 100
-    }
-  })
-  // istanbul ignore if
-  if (!cli || !cli.flags || !cli.flags.quiet) {
-    if (Stores.length) {
-      console.error(`${Stores.length} stores found.`)
-    }
-  }
-  return Stores
-}
-*/
 stores.description = 'List local stores'
 
 const supportedLocations = [
@@ -478,4 +259,3 @@ const doit = async (cli) => {
 module.exports = doit
 module.exports.commands = commands
 module.exports.stocks = stocks
-// module.exports.knownSkus = knownSkus
