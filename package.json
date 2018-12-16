@@ -16,11 +16,11 @@
   },
   "dependencies": {
     "fast-json-stable-stringify": "^2.0.0",
-    "got": "^9.3.2",
+    "got": "^9.4.0",
     "meow": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "^1.0.0-rc.2",
+    "ava": "^1.0.1",
     "coveralls": "^3.0.2",
     "dependency-check": "^3.2.1",
     "nyc": "^13.1.0",
