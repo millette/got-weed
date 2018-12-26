@@ -16,13 +16,13 @@
   },
   "dependencies": {
     "fast-json-stable-stringify": "^2.0.0",
-    "got": "^9.4.0",
+    "got": "^9.5.0",
     "meow": "^5.0.0"
   },
   "devDependencies": {
     "ava": "^1.0.1",
     "coveralls": "^3.0.2",
-    "dependency-check": "^3.2.1",
+    "dependency-check": "^3.3.0",
     "nyc": "^13.1.0",
     "pkg": "^4.3.5",
     "standard": "^12.0.1"
