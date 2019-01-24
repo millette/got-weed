@@ -1,7 +1,7 @@
 {
   "name": "got-weed",
   "description": "Find out what products are currently in stock at SQDC.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "main": "index.js",
   "bin": "cli.js",
   "engines": {
