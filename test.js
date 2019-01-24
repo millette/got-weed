@@ -42,19 +42,19 @@ test('get categories', async (t) => {
 
 test('get products (oils)', async (t) => {
   const x = await gw({ input: ['products'], flags: { details: true, language: 'joe', location: 'joe', category: 'oils', quiet: true } })
-  t.is(x.length, 10)
+  t.is(x.length, 11)
   t.truthy(x[0].priceDetails)
   const y = await gw({ input: ['products'], flags: { location: 'qc', category: 'huiles', language: 'fr', quiet: true } })
-  t.is(y.length, 10)
+  t.is(y.length, 11)
   t.falsy(y[0].priceDetails)
   t.deepEqual(x.map(({ Sku }) => Sku).sort(), y.map(({ Sku }) => Sku).sort())
 })
 
 test('get products', async (t) => {
   const x = await gw({ input: ['products'], flags: { quiet: true } })
-  t.is(x.length, 93)
+  t.is(x.length, 103)
   const skus = x.map(({ Sku }) => Sku).sort()
-  t.truthy(skus.length < 100)
+  t.truthy(skus.length < 120)
   t.truthy(skus.length > 50)
   // t.deepEqual(skus, knownSkus)
 })
