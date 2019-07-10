@@ -23,6 +23,7 @@
     "ava": "^2.2.0",
     "coveralls": "^3.0.4",
     "dependency-check": "^3.4.1",
+    "lodash": "^4.17.14",
     "nyc": "^14.1.1",
     "pkg": "^4.4.0",
     "standard": "^13.0.0"
