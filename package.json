@@ -20,19 +20,18 @@
     "meow": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "^2.2.0",
-    "coveralls": "^3.0.4",
-    "dependency-check": "^3.4.1",
-    "lodash": "^4.17.14",
+    "ava": "^2.3.0",
+    "coveralls": "^3.0.6",
+    "dependency-check": "^4.1.0",
     "nyc": "^14.1.1",
     "pkg": "^4.4.0",
-    "standard": "^13.0.0"
+    "standard": "^14.0.2"
   },
   "scripts": {
     "pkg": "standard && pkg .",
     "lint": "standard",
     "test": "standard && nyc ava",
-    "deps": "standard && dependency-check . && dependency-check . --unused --no-dev",
+    "deps": "standard && dependency-check . --no-dev",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   }
 }
