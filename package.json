@@ -20,11 +20,11 @@
     "meow": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "^2.3.0",
-    "coveralls": "^3.0.6",
+    "ava": "^2.4.0",
+    "coveralls": "^3.0.9",
     "dependency-check": "^4.1.0",
     "nyc": "^14.1.1",
-    "pkg": "^4.4.0",
+    "pkg": "^4.4.2",
     "standard": "^14.3.1"
   },
   "scripts": {
