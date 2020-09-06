@@ -1,9 +1,11 @@
 // npm
-import test from 'ava'
+// import test from 'ava'
+const test = require('ava')
 
 // self
-// import gw, { commands, stocks, knownSkus } from '.'
-import gw, { commands } from '.'
+// import gw, { commands } from '.'
+const gw = require('.')
+const { commands } = gw
 
 test('five commands', (t) => {
   const knownCommands = ['categories', 'locations', 'products', 'specs', 'stores']
@@ -15,13 +17,12 @@ test('five commands', (t) => {
 test('get product details (specs)', async (t) => {
   const { THCContentAverage, CannabisType } = await gw({ input: ['specs'], flags: { sku: '697238111297', quiet: true } })
   t.is(THCContentAverage.Value, '16,00000')
-  t.is(CannabisType.Value, 'Sativa')
+  t.is(CannabisType.Value, 'Hybride')
 })
 
 test('get stores', async (t) => {
   const { length } = await gw({ input: ['stores'], flags: { quiet: true } })
-  // t.is(length, 17)
-  t.is(length, 33)
+  t.is(length, 45)
 })
 
 test('get locations', async (t) => {
@@ -53,7 +54,7 @@ test.skip('get products (oils)', async (t) => {
 
 test('get products', async (t) => {
   const x = await gw({ input: ['products'], flags: { quiet: true } })
-  t.is(x.length, 238)
+  t.is(x.length, 339)
   const skus = x.map(({ Sku }) => Sku).sort()
   t.truthy(skus.length < 400)
   t.truthy(skus.length > 200)
@@ -93,4 +94,4 @@ test('nothing (help)', async (t) => {
   t.falsy(x)
 })
 
-test('cli (fail)', (t) => t.throwsAsync(gw({ input: ['jo'] }), 'Command must be one of "categories", "locations", "products", "specs" or "stores".'))
+test('cli (fail)', (t) => t.throwsAsync(gw({ input: ['jo'] }), { message: 'Command must be one of "categories", "locations", "products", "specs" or "stores".' }))
