@@ -21,9 +21,9 @@
   },
   "devDependencies": {
     "ava": "^3.12.1",
-    "coveralls": "^3.0.9",
+    "coveralls": "^3.1.0",
     "dependency-check": "^4.1.0",
-    "nyc": "^15.0.0",
+    "nyc": "^15.1.0",
     "pkg": "^4.4.9",
     "standard": "^14.3.4"
   },
