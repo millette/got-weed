@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "fast-json-stable-stringify": "^2.1.0",
-    "got": "^9.6.0",
+    "got": "^11.8.5",
     "meow": "^7.1.1"
   },
   "devDependencies": {
